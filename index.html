@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi TV Station PRO plus #4 · Tech Blue (Vertical PRO)</title>
+
+  <style>
+    :root{
+      --bg0:#020512; --bg1:#050a1f;
+      --line:rgba(79,155,255,.25); --line2:rgba(79,155,255,.12);
+      --text:#eaf2ff; --muted:#a9c1e6;
+      --accent:#1f8bff; --accent2:#4ac3ff;
+      --good:#2ee59d; --warn:#ffd166; --danger:#ff5a7a;
+      --r:16px;
+      --shadow: 0 14px 40px rgba(0,0,0,.45);
+      --glow: 0 0 0 1px rgba(31,139,255,.22), 0 12px 34px rgba(31,139,255,.12);
+
+      --sideW: 420px;
+      --gap: 16px;
+
+      --vTileH: 108px;
+      --vGap: 12px;
+
+      --pad: 18px;
+      --padTv: 34px;  /* overscan padding */
+    }
+
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+
+    body{
+      margin:0;
+      padding: var(--pad);
+      padding-right: calc(var(--sideW) + var(--gap) + var(--pad));
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 20% 0%, rgba(31,139,255,.18), transparent 60%),
+        radial-gradient(900px 500px at 90% 10%, rgba(74,195,255,.12), transparent 55%),
+        radial-gradient(700px 500px at 40% 100%, rgba(31,139,255,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+    }
+
+    /* ===== MODOS ===== */
+    body.tv-overscan{
+      padding: var(--padTv);
+      padding-right: calc(var(--sideW) + var(--gap) + var(--padTv));
+    }
+    body.player-collapsed{
+      padding-right: var(--pad);
+    }
+    body.player-collapsed.tv-overscan{
+      padding-right: var(--padTv);
+    }
+
+    .app{
+      max-width: 1200px;
+      margin: 0 auto;
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:14px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(11,20,48,.85), rgba(7,13,36,.88));
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-header{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--line2);
+      background:
+        radial-gradient(900px 140px at 15% 0%, rgba(31,139,255,.20), transparent 60%),
+        linear-gradient(180deg, rgba(11,20,48,.25), transparent);
+    }
+
+    .brand{ display:flex; align-items:center; gap:10px; min-width:0; }
+    .badge{
+      width:34px; height:34px; border-radius:12px; display:grid; place-items:center;
+      background: rgba(31,139,255,.12);
+      border:1px solid rgba(74,195,255,.25);
+      box-shadow: var(--glow);
+      flex:0 0 auto;
+    }
+    .brand h1{ margin:0; font-size:14px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .brand small{ display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+
+    .grid{ padding:14px; display:grid; gap:10px; }
+    label{ font-size:12px; color:var(--muted); }
+
+    input, select, button{
+      width:100%;
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid rgba(79,155,255,.22);
+      background: rgba(7,13,36,.72);
+      color: var(--text);
+      outline:none;
+      font-size:14px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.18);
+    }
+    input[type="file"]{ padding:10px; cursor:pointer; }
+    input::placeholder{ color: rgba(169,193,230,.7) }
+    select{ min-height: 260px; padding:8px; }
+
+    .actions{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:6px; }
+    .actions3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-top:6px; }
+
+    button{
+      cursor:pointer;
+      border:1px solid rgba(79,155,255,.25);
+      background: linear-gradient(180deg, rgba(31,139,255,.18), rgba(7,13,36,.35));
+      box-shadow: var(--glow);
+      transition: transform .12s ease, filter .12s ease, border-color .12s ease;
+      font-weight:600;
+      letter-spacing:.2px;
+      user-select:none;
+    }
+    button:hover{ filter: brightness(1.06); border-color: rgba(74,195,255,.40); }
+    button:active{ transform: translateY(1px); }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .btn-secondary{
+      background: linear-gradient(180deg, rgba(255,209,102,.12), rgba(7,13,36,.35));
+      border-color: rgba(255,209,102,.28);
+      box-shadow: 0 0 0 1px rgba(255,209,102,.10), 0 12px 34px rgba(255,209,102,.10);
+    }
+    .btn-fav{
+      background: linear-gradient(180deg, rgba(46,229,157,.10), rgba(7,13,36,.35));
+      border-color: rgba(46,229,157,.26);
+      box-shadow: 0 0 0 1px rgba(46,229,157,.10), 0 12px 34px rgba(46,229,157,.10);
+    }
+    .btn-toggle{
+      background: linear-gradient(180deg, rgba(74,195,255,.10), rgba(7,13,36,.35));
+      border-color: rgba(74,195,255,.26);
+      box-shadow: 0 0 0 1px rgba(74,195,255,.10), 0 12px 34px rgba(74,195,255,.10);
+    }
+
+    .info-box{
+      background: rgba(7,13,36,.62);
+      border: 1px solid rgba(79,155,255,.18);
+      border-radius: 14px;
+      padding: 12px;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.35;
+      min-height: 98px;
+    }
+
+    /* Preview */
+    .preview{ padding:14px; display:grid; gap:12px; align-content:start; }
+    .preview-media{
+      display:grid; grid-template-columns: 92px 1fr;
+      gap:12px; align-items:center;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid rgba(79,155,255,.18);
+      background: rgba(7,13,36,.55);
+    }
+    .thumb{
+      width:92px; height:92px; border-radius:14px;
+      border:1px solid rgba(79,155,255,.25);
+      background: rgba(2,5,18,.6);
+      display:grid; place-items:center;
+      overflow:hidden;
+      box-shadow: var(--glow);
+    }
+    .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .meta h2{ margin:0; font-size:14px; line-height:1.2; }
+    .meta p{ margin:6px 0 0; color: var(--muted); font-size:12px; word-break: break-word; }
+
+    /* ===== SLIDER VERTICAL PRO ===== */
+    .slider-wrap{
+      border: 1px solid rgba(79,155,255,.18);
+      background: rgba(7,13,36,.40);
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .slider-head{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom: 10px;
+    }
+    .slider-head .title{ font-weight:900; font-size:13px; }
+
+    .vctrls{ display:flex; gap:8px; align-items:center; }
+    .iconbtn{
+      width:44px !important;
+      min-width:44px !important;
+      max-width:44px !important;
+      padding:10px 0 !important;
+      border-radius: 12px;
+      text-align:center;
+    }
+
+    .v-viewport{
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      padding: 6px;
+      background: rgba(2,5,18,.35);
+      border: 1px solid rgba(79,155,255,.10);
+      height: 390px; /* TV-safe */
+    }
+
+    .v-track{
+      display:flex;
+      flex-direction: column;
+      gap: var(--vGap);
+      will-change: transform;
+      transition: transform .25s ease;
+      padding: 4px;
+    }
+
+    .v-tile{
+      display:grid;
+      grid-template-columns: 92px 1fr;
+      gap: 10px;
+      align-items:center;
+      height: var(--vTileH);
+      border-radius: 16px;
+      border:1px solid rgba(79,155,255,.18);
+      background: rgba(2,5,18,.55);
+      box-shadow: var(--glow);
+      overflow:hidden;
+      padding: 8px;
+      cursor: pointer;
+      outline:none;
+    }
+    .v-tile:focus{
+      border-color: rgba(74,195,255,.60);
+      box-shadow: 0 0 0 2px rgba(74,195,255,.22), var(--glow);
+    }
+
+    .v-img{
+      width:92px; height:92px;
+      border-radius: 14px;
+      overflow:hidden;
+      border:1px solid rgba(79,155,255,.22);
+      background: rgba(7,13,36,.6);
+      display:grid; place-items:center;
+    }
+    .v-img img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+    .v-body{ display:grid; gap:8px; align-content: start; min-width:0; }
+    .v-name{
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.15;
+      max-height: 2.4em;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    .v-btnrow{
+      display:grid;
+      grid-template-columns: 1fr 42px;
+      gap: 8px;
+      align-items:center;
+    }
+    .playnow{
+      padding: 10px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .favbtn{
+      width:42px !important;
+      min-width:42px !important;
+      max-width:42px !important;
+      padding: 10px 0 !important;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 900;
+      background: linear-gradient(180deg, rgba(46,229,157,.10), rgba(7,13,36,.35));
+      border-color: rgba(46,229,157,.26);
+      box-shadow: 0 0 0 1px rgba(46,229,157,.10), 0 12px 34px rgba(46,229,157,.10);
+    }
+    .favbtn.is-on{
+      background: linear-gradient(180deg, rgba(255,90,122,.10), rgba(7,13,36,.35));
+      border-color: rgba(255,90,122,.30);
+      box-shadow: 0 0 0 1px rgba(255,90,122,.10), 0 12px 34px rgba(255,90,122,.10);
+    }
+
+    /* Badge contador */
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(79,155,255,.18);
+      background: rgba(2,5,18,.45);
+      color: var(--muted);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: rgba(46,229,157,.9);
+      box-shadow: 0 0 0 2px rgba(46,229,157,.18);
+    }
+
+    /* Favorites drawer */
+    .fav-drawer{ display:none; margin-top:10px; }
+    .fav-drawer.open{ display:block; }
+    .fav-list{ display:grid; gap:10px; margin-top:10px; }
+    .fav-item{
+      display:grid;
+      grid-template-columns: 56px 1fr auto;
+      gap:10px;
+      align-items:center;
+      padding:10px;
+      border-radius:14px;
+      border:1px solid rgba(79,155,255,.18);
+      background: rgba(7,13,36,.55);
+    }
+    .fav-thumb{
+      width:56px; height:56px;
+      border-radius:12px;
+      border: 1px solid rgba(79,155,255,.22);
+      overflow:hidden;
+      background: rgba(2,5,18,.6);
+      display:grid; place-items:center;
+    }
+    .fav-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .fav-meta b{ font-size: 12px; display:block; line-height:1.2; }
+    .fav-meta small{ color: var(--muted); font-size: 11px; word-break: break-word; }
+    .fav-actions{ display:flex; gap:8px; }
+    .mini{ width:auto; padding: 10px 12px; border-radius: 12px; font-size: 12px; font-weight: 900; }
+    .mini.danger{
+      background: linear-gradient(180deg, rgba(255,90,122,.10), rgba(7,13,36,.35));
+      border-color: rgba(255,90,122,.30);
+      box-shadow: 0 0 0 1px rgba(255,90,122,.10), 0 12px 34px rgba(255,90,122,.10);
+    }
+
+    /* Player lateral */
+    .player-side{
+      position: fixed;
+      top: var(--pad);
+      right: var(--pad);
+      bottom: var(--pad);
+      width: var(--sideW);
+      z-index: 2;
+      border-radius: 18px;
+      border: 1px solid rgba(79,155,255,.22);
+      background:
+        radial-gradient(900px 260px at 20% 0%, rgba(31,139,255,.16), transparent 60%),
+        linear-gradient(180deg, rgba(7,13,36,.92), rgba(2,5,18,.96));
+      box-shadow: 0 18px 55px rgba(0,0,0,.55), var(--glow);
+      overflow: hidden;
+      display:flex;
+      flex-direction: column;
+      transition: transform .22s ease, opacity .22s ease;
+    }
+    body.tv-overscan .player-side{
+      top: var(--padTv);
+      right: var(--padTv);
+      bottom: var(--padTv);
+    }
+    body.player-collapsed .player-side{
+      transform: translateX(calc(var(--sideW) + 40px));
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .player-side .head{
+      padding: 12px 12px 10px;
+      border-bottom: 1px solid rgba(79,155,255,.14);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .player-side .head b{ color: var(--text); font-size: 13px; }
+    .player-side iframe{
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: black;
+    }
+
+    @media (max-width: 1100px){
+      :root{ --sideW: 360px; }
+    }
+    @media (max-width: 980px){
+      body{ padding-right: var(--pad); padding-bottom: 240px; }
+      body.tv-overscan{ padding-right: var(--padTv); padding-bottom: 260px; }
+      .player-side{
+        top: auto;
+        left: var(--pad);
+        right: var(--pad);
+        bottom: var(--pad);
+        width: auto;
+        height: 220px;
+      }
+      body.tv-overscan .player-side{
+        left: var(--padTv);
+        right: var(--padTv);
+        bottom: var(--padTv);
+      }
+      body.player-collapsed .player-side{
+        transform: translateY(260px);
+        opacity: 0;
+      }
+      .app{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- LEFT -->
+    <section class="card">
+      <div class="card-header">
+        <div class="brand">
+          <div class="badge">📺</div>
+          <div style="min-width:0">
+            <h1>Mi TV Station PRO plus #4</h1>
+            <small>Tech Blue · Vertical PRO + TV Mode + Remote</small>
+          </div>
+        </div>
+        <div class="pill" id="fav-pill" title="Favoritos guardados">
+          <span class="dot"></span>
+          <span>Favs:</span>
+          <b id="fav-count">0</b>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label for="file-input">Cargar listado (JSON)</label>
+          <input type="file" id="file-input" accept=".json,application/json">
+        </div>
+
+        <div>
+          <label for="search-input">Buscar</label>
+          <input type="text" id="search-input" placeholder="🔍 Buscar canal / película...">
+        </div>
+
+        <div>
+          <label for="channel-select">Lista</label>
+          <select id="channel-select" size="12"></select>
+        </div>
+
+        <div class="actions">
+          <button id="play-button">▶ Ver</button>
+          <button id="info-button" class="btn-secondary">🌍 Info</button>
+        </div>
+
+        <div class="actions">
+          <button id="fav-toggle" class="btn-fav">⭐ Favoritos</button>
+          <button id="clear-favs" class="btn-secondary">🧹 Limpiar</button>
+        </div>
+
+        <div class="actions3">
+          <button id="toggle-tv" class="btn-toggle" title="Modo TV / Overscan">📺 TV Mode</button>
+          <button id="toggle-player" class="btn-toggle" title="Mostrar / ocultar player lateral">🧲 Dock</button>
+          <button id="focus-slider" class="btn-toggle" title="Enfocar carrusel (para control remoto)">🎯 Focus</button>
+        </div>
+
+        <div id="channel-info" class="info-box"></div>
+
+        <div id="fav-drawer" class="fav-drawer">
+          <div class="info-box">
+            <b>Mis Favoritos</b><br>
+            Usa ▲▼ para navegar, ←→ para Play/Fav, Enter para ejecutar.
+            <div id="fav-list" class="fav-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="card">
+      <div class="card-header">
+        <div class="brand">
+          <div class="badge">🖼️</div>
+          <div>
+            <h1>Preview + Carrusel</h1>
+            <small>Vertical (▲▼) · TV Safe</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview">
+        <div class="preview-media">
+          <div class="thumb" id="thumb">
+            <span style="color:rgba(169,193,230,.75);font-size:12px;">No Image</span>
+          </div>
+          <div class="meta">
+            <h2 id="pv-title">Selecciona un item</h2>
+            <p id="pv-url">—</p>
+          </div>
+        </div>
+
+        <div class="slider-wrap">
+          <div class="slider-head">
+            <div class="title">Carrusel Vertical</div>
+            <div class="vctrls">
+              <button class="iconbtn" id="car-up" title="Arriba">▲</button>
+              <button class="iconbtn" id="car-down" title="Abajo">▼</button>
+            </div>
+          </div>
+
+          <div class="v-viewport" id="v-viewport">
+            <div class="v-track" id="carousel-track"></div>
+          </div>
+        </div>
+
+        <div class="info-box" id="pv-extra">
+          Carga un JSON y el carrusel se llenará automáticamente.
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- PLAYER LATERAL -->
+  <div class="player-side" id="player-side">
+    <div class="head">
+      <div><b>🎬 Player</b> <span style="opacity:.9">Lateral</span></div>
+      <div style="opacity:.9">Tip: Dock / TV Mode</div>
+    </div>
+    <iframe id="player" allowfullscreen></iframe>
+  </div>
+  <script>
+    let channelsData = [];
+    let currentChannel = null;
+  
+    const fileInput = document.getElementById('file-input');
+    const searchInput = document.getElementById('search-input');
+    const channelSelect = document.getElementById('channel-select');
+    const player = document.getElementById('player');
+    const infoBox = document.getElementById('channel-info');
+  
+    const thumbEl = document.getElementById('thumb');
+    const pvTitle = document.getElementById('pv-title');
+    const pvUrl = document.getElementById('pv-url');
+    const pvExtra = document.getElementById('pv-extra');
+  
+    const vViewport = document.getElementById('v-viewport');
+    const track = document.getElementById('carousel-track');
+    const carUp = document.getElementById('car-up');
+    const carDown = document.getElementById('car-down');
+  
+    const favToggle = document.getElementById('fav-toggle');
+    const favDrawer = document.getElementById('fav-drawer');
+    const favListEl = document.getElementById('fav-list');
+    const clearFavsBtn = document.getElementById('clear-favs');
+    const favCountEl = document.getElementById('fav-count');
+  
+    const toggleTvBtn = document.getElementById('toggle-tv');
+    const togglePlayerBtn = document.getElementById('toggle-player');
+    const focusSliderBtn = document.getElementById('focus-slider');
+  
+    const FAV_KEY = "mtvstation_favs_v2";
+    const UI_KEY  = "mtvstation_ui_v1";
+  
+    // Tech Blue fallback SVG
+    const FALLBACK_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'>
+        <defs>
+          <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0' stop-color='#1f8bff' stop-opacity='0.35'/>
+            <stop offset='1' stop-color='#4ac3ff' stop-opacity='0.12'/>
+          </linearGradient>
+        </defs>
+        <rect width='100%' height='100%' fill='#020512'/>
+        <rect x='12' y='12' width='296' height='296' rx='28' fill='url(#g)' stroke='rgba(79,155,255,.35)'/>
+        <text x='50%' y='46%' text-anchor='middle' fill='rgba(234,242,255,.92)' font-family='Arial' font-size='22' font-weight='700'>TECH BLUE</text>
+        <text x='50%' y='56%' text-anchor='middle' fill='rgba(169,193,230,.85)' font-family='Arial' font-size='14'>Mi TV Station</text>
+        <circle cx='160' cy='205' r='36' fill='rgba(31,139,255,.18)' stroke='rgba(74,195,255,.35)'/>
+        <text x='160' y='212' text-anchor='middle' fill='rgba(234,242,255,.9)' font-family='Arial' font-size='22'>🖤</text>
+      </svg>
+    `);
+  
+    // Vertical slider state
+    let vIndex = 0;
+    let vStep = 120;
+    let vMax = 0;
+    let lastRenderedData = [];
+  
+    // Remote-focus state
+    let focusRow = 0;  // tile index
+    let focusCol = 0;  // 0=Play, 1=Fav
+    let tilesCache = [];
+  
+    // ===== Persistence UI =====
+    function loadUI(){
+      try { return JSON.parse(localStorage.getItem(UI_KEY) || "{}"); } catch { return {}; }
+    }
+    function saveUI(obj){
+      localStorage.setItem(UI_KEY, JSON.stringify(obj || {}));
+    }
+    function applyUIFromStorage(){
+      const ui = loadUI();
+      if(ui.tvMode) document.body.classList.add("tv-overscan");
+      if(ui.playerCollapsed) document.body.classList.add("player-collapsed");
+      toggleTvBtn.textContent = document.body.classList.contains("tv-overscan") ? "📺 TV ON" : "📺 TV Mode";
+      togglePlayerBtn.textContent = document.body.classList.contains("player-collapsed") ? "🧲 Dock OFF" : "🧲 Dock";
+    }
+  
+    // ===== Utilities =====
+    function saveChannelInfo(host, info) {
+      const saved = JSON.parse(localStorage.getItem("channelInfo") || "{}");
+      saved[host] = info;
+      localStorage.setItem("channelInfo", JSON.stringify(saved));
+    }
+    function getSavedChannelInfo(host) {
+      const saved = JSON.parse(localStorage.getItem("channelInfo") || "{}");
+      return saved[host] || null;
+    }
+    async function fetchChannelInfo(url) {
+      try {
+        const host = new URL(url).hostname;
+        const saved = getSavedChannelInfo(host);
+        if (saved) return saved;
+        const res = await fetch(`http://ip-api.com/json/${host}`);
+        const data = await res.json();
+        if (data.status === "success") {
+          saveChannelInfo(host, data);
+          return data;
+        }
+      } catch (e) { return null; }
+    }
+  
+    function getTitle(ch, idx){
+      return ch.title || ch.name || ch.tvgName || ch.channel || `Item ${idx + 1}`;
+    }
+    function getUrl(ch){
+      return ch.url || ch.stream || ch.link || ch.src || ch.play || '';
+    }
+    function getImage(ch){
+      return (ch.logo || ch.poster || ch.img || ch.image || ch.icon || ch.thumb ||
+              ch["tvg-logo"] || ch.tvgLogo || ch.cover || ch.art || '');
+    }
+    function safeText(s){ return (s ?? '').toString(); }
+    function playChannel(url){ player.src = url; }
+  
+    // ===== Favorites =====
+    function loadFavs(){ try{ return JSON.parse(localStorage.getItem(FAV_KEY) || "[]"); } catch{ return []; } }
+    function saveFavs(arr){ localStorage.setItem(FAV_KEY, JSON.stringify(arr)); updateFavCount(); }
+    function updateFavCount(){ favCountEl.textContent = String(loadFavs().length); }
+  
+    function favIdFromItem(ch){
+      const u = getUrl(ch);
+      if(u) return "u:" + u;
+      return "t:" + (ch.title || ch.name || "").toString().trim().toLowerCase();
+    }
+    function isFav(ch){
+      const id = favIdFromItem(ch);
+      return loadFavs().some(x => x.id === id);
+    }
+  
+    function renderFavs(){
+      const favs = loadFavs();
+      favListEl.innerHTML = '';
+      if(!favs.length){
+        favListEl.innerHTML = `<div style="color:rgba(169,193,230,.85);font-size:12px;">
+          Aún no tienes favoritos. Presiona ☆/♥ en el carrusel.
+        </div>`;
+        return;
+      }
+      favs.forEach(f => {
+        const row = document.createElement('div');
+        row.className = 'fav-item';
+  
+        const th = document.createElement('div');
+        th.className = 'fav-thumb';
+        const imgSrc = f.img || FALLBACK_IMG;
+        const im = document.createElement('img');
+        im.loading = 'lazy';
+        im.referrerPolicy = 'no-referrer';
+        im.src = imgSrc;
+        im.onerror = () => { im.src = FALLBACK_IMG; };
+        th.appendChild(im);
+  
+        const meta = document.createElement('div');
+        meta.className = 'fav-meta';
+        meta.innerHTML = `<b>${safeText(f.title)}</b><small>${safeText(f.url || '')}</small>`;
+  
+        const act = document.createElement('div');
+        act.className = 'fav-actions';
+  
+        const playBtn = document.createElement('button');
+        playBtn.className = 'mini';
+        playBtn.textContent = '▶ Play';
+        playBtn.onclick = () => { if(f.url) playChannel(f.url); };
+  
+        const delBtn = document.createElement('button');
+        delBtn.className = 'mini danger';
+        delBtn.textContent = '🗑';
+        delBtn.onclick = () => removeFavById(f.id);
+  
+        act.appendChild(playBtn);
+        act.appendChild(delBtn);
+  
+        row.appendChild(th);
+        row.appendChild(meta);
+        row.appendChild(act);
+        favListEl.appendChild(row);
+      });
+    }
+  
+    // ===== Preview =====
+    function setThumb(img, title){
+      thumbEl.innerHTML = '';
+      const im = document.createElement('img');
+      im.alt = title || 'poster';
+      im.loading = 'lazy';
+      im.referrerPolicy = 'no-referrer';
+      im.src = img || FALLBACK_IMG;
+      im.onerror = () => { im.src = FALLBACK_IMG; };
+      thumbEl.appendChild(im);
+    }
+  
+    function setPreview(ch, idx){
+      if(!ch){
+        thumbEl.innerHTML = '<span style="color:rgba(169,193,230,.75);font-size:12px;">No Image</span>';
+        pvTitle.textContent = 'Selecciona un item';
+        pvUrl.textContent = '—';
+        pvExtra.textContent = 'Carga un JSON y el carrusel se llenará automáticamente.';
+        return;
+      }
+      const title = getTitle(ch, idx);
+      const url = getUrl(ch);
+      const img = getImage(ch) || FALLBACK_IMG;
+  
+      pvTitle.textContent = title;
+      pvUrl.textContent = url || '—';
+      setThumb(img, title);
+  
+      const star = isFav(ch) ? "✅ En favoritos" : "⭐ No favorito";
+      pvExtra.innerHTML =
+        `<b>${safeText(title)}</b><br>` +
+        `${star}<br>` +
+        `🖼️ Imagen: <span style="color:rgba(169,193,230,.9)">${safeText(getImage(ch) || 'fallback')}</span><br>` +
+        (url ? `🔗 URL: <span style="color:rgba(169,193,230,.9)">${safeText(url)}</span>` : '🔗 URL: —');
+    }
+  
+    // ===== List =====
+    function updateChannelList(filtered = null) {
+      channelSelect.innerHTML = '';
+      const data = filtered || channelsData;
+      data.forEach((ch, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = getTitle(ch, index);
+        channelSelect.appendChild(option);
+      });
+      if(data.length) channelSelect.selectedIndex = 0;
+    }
+  
+    async function showChannelInfo(url) {
+      const data = await fetchChannelInfo(url);
+      if (data) {
+        infoBox.innerHTML = `
+          <div style="display:flex;gap:10px;align-items:center;">
+            <img style="width:26px;height:18px;border-radius:4px;border:1px solid rgba(79,155,255,.25);" 
+                 src="https://flagcdn.com/w40/${data.countryCode.toLowerCase()}.png">
+            <div>
+              <strong>${data.country}</strong><br>
+              <span style="color:rgba(169,193,230,.9)">${data.regionName}</span>
+            </div>
+          </div>
+          <hr style="border:none;border-top:1px solid rgba(79,155,255,.18);margin:10px 0;">
+          🛰️ ISP: <b>${data.isp}</b><br>
+          🔗 IP: <b>${data.query}</b><br>
+          🔤 Host: <b>${new URL(url).hostname}</b>
+        `;
+      } else {
+        infoBox.innerHTML = "❌ No se pudo obtener la información.";
+      }
+    }
+  
+    // ===== Vertical slider core =====
+    function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+  
+    function applyVTransform(){
+      track.style.transform = `translateY(${-(vIndex * vStep)}px)`;
+    }
+    function updateVArrows(){
+      carUp.disabled = (vIndex <= 0);
+      carDown.disabled = (vIndex >= vMax);
+    }
+    function recomputeV(){
+      const first = track.querySelector('.v-tile');
+      if(!first){
+        vStep = 120; vMax = 0; vIndex = 0;
+        applyVTransform(); updateVArrows();
+        return;
+      }
+      const tileH = first.getBoundingClientRect().height;
+      const gap = parseInt(getComputedStyle(track).gap || "12", 10) || 12;
+      vStep = Math.round(tileH + gap);
+  
+      const vpH = vViewport.getBoundingClientRect().height;
+      const visible = Math.max(1, Math.floor((vpH + gap) / vStep));
+      const total = track.children.length;
+  
+      vMax = Math.max(0, total - visible);
+      vIndex = clamp(vIndex, 0, vMax);
+      applyVTransform();
+      updateVArrows();
+    }
+  
+    function vSlideToMakeVisible(rowIndex){
+      const vpH = vViewport.getBoundingClientRect().height;
+      const gap = parseInt(getComputedStyle(track).gap || "12", 10) || 12;
+      const visible = Math.max(1, Math.floor((vpH + gap) / vStep));
+  
+      if(rowIndex < vIndex) vIndex = rowIndex;
+      else if(rowIndex >= vIndex + visible) vIndex = Math.max(0, rowIndex - visible + 1);
+  
+      vIndex = clamp(vIndex, 0, vMax);
+      applyVTransform();
+      updateVArrows();
+    }
+  
+    function vSlideBy(delta){
+      vIndex = clamp(vIndex + delta, 0, vMax);
+      applyVTransform();
+      updateVArrows();
+    }
+  
+    // ===== Focus helpers =====
+    function refreshTilesCache(){
+      tilesCache = Array.from(track.querySelectorAll('.v-tile'));
+      focusRow = clamp(focusRow, 0, Math.max(0, tilesCache.length - 1));
+    }
+  
+    function focusCurrent(){
+      refreshTilesCache();
+      if(!tilesCache.length) return;
+  
+      const tile = tilesCache[focusRow];
+      const playBtn = tile.querySelector('button.playnow');
+      const favBtn = tile.querySelector('button.favbtn');
+  
+      recomputeV();
+      vSlideToMakeVisible(focusRow);
+  
+      if(focusCol === 1 && favBtn) favBtn.focus();
+      else if(playBtn) playBtn.focus();
+      else tile.focus();
+    }
+  
+    function getActiveContextTag(){
+      const el = document.activeElement;
+      const tag = el && el.tagName ? el.tagName.toLowerCase() : '';
+      const typing = (tag === 'input' || tag === 'textarea');
+      return { tag, typing, el };
+    }
+  
+    // ===== Slider render =====
+    function renderSlider(data){
+      lastRenderedData = data || [];
+      track.innerHTML = '';
+  
+      if(!data || !data.length){
+        track.innerHTML = `<div style="color:rgba(169,193,230,.85);font-size:12px;padding:10px;">
+          Carga un JSON para ver el carrusel.
+        </div>`;
+        vIndex = 0;
+        focusRow = 0; focusCol = 0;
+        setTimeout(() => { recomputeV(); }, 0);
+        return;
+      }
+  
+      data.forEach((ch, idx) => {
+        const row = document.createElement('div');
+        row.className = 'v-tile';
+        row.tabIndex = 0;
+        row.dataset.idx = String(idx);
+  
+        const imgWrap = document.createElement('div');
+        imgWrap.className = 'v-img';
+  
+        const img = getImage(ch) || FALLBACK_IMG;
+        const im = document.createElement('img');
+        im.loading = 'lazy';
+        im.referrerPolicy = 'no-referrer';
+        im.src = img;
+        im.alt = getTitle(ch, idx);
+        im.onerror = () => { im.src = FALLBACK_IMG; };
+        imgWrap.appendChild(im);
+  
+        const body = document.createElement('div');
+        body.className = 'v-body';
+  
+        const name = document.createElement('div');
+        name.className = 'v-name';
+        name.textContent = getTitle(ch, idx);
+  
+        const btnRow = document.createElement('div');
+        btnRow.className = 'v-btnrow';
+  
+        const playBtn = document.createElement('button');
+        playBtn.className = 'playnow';
+        playBtn.type = 'button';
+        playBtn.textContent = '▶ Play Now';
+        playBtn.onclick = (ev) => {
+          ev.stopPropagation();
+          currentChannel = ch;
+          setPreview(ch, idx);
+          const url = getUrl(ch);
+          if(url) playChannel(url);
+        };
+  
+        const favBtn = document.createElement('button');
+        favBtn.className = 'favbtn' + (isFav(ch) ? ' is-on' : '');
+        favBtn.type = 'button';
+        favBtn.textContent = isFav(ch) ? '♥' : '☆';
+        favBtn.title = 'Favorito';
+  
+        // ✅ importante: NO hacemos reset del carrusel al marcar fav
+        favBtn.onclick = (ev) => {
+          ev.stopPropagation();
+          const id = favIdFromItem(ch);
+  
+          // guarda posición actual antes de tocar fav
+          const keepRow = focusRow;
+          const keepCol = 1;
+          const keepVIndex = vIndex;
+  
+          if(isFav(ch)) removeFavById(id);
+          else addFav(ch);
+  
+          // restauración (por si re-render cambia botones)
+          focusRow = keepRow;
+          focusCol = keepCol;
+          vIndex = keepVIndex;
+          setTimeout(() => focusCurrent(), 0);
+        };
+  
+        btnRow.appendChild(playBtn);
+        btnRow.appendChild(favBtn);
+  
+        row.onclick = () => {
+          currentChannel = ch;
+          setPreview(ch, idx);
+          const realIndex = channelsData.indexOf(ch);
+          if(realIndex >= 0) channelSelect.selectedIndex = realIndex;
+          focusRow = idx; focusCol = 0;
+        };
+  
+        body.appendChild(name);
+        body.appendChild(btnRow);
+        row.appendChild(imgWrap);
+        row.appendChild(body);
+        track.appendChild(row);
+      });
+  
+      // por defecto solo resetea si es una carga nueva / búsqueda
+      vIndex = 0;
+      focusRow = 0; focusCol = 0;
+  
+      setTimeout(() => {
+        recomputeV();
+        applyVTransform();
+        updateVArrows();
+        refreshTilesCache();
+      }, 0);
+    }
+  
+    // ✅ NUEVO: render sin perder posición
+    function renderSliderPreserveFocus(data){
+      const prevRow = focusRow;
+      const prevCol = focusCol;
+      const prevVIndex = vIndex;
+  
+      renderSlider(data);
+  
+      setTimeout(() => {
+        refreshTilesCache();
+        recomputeV();
+  
+        focusRow = clamp(prevRow, 0, Math.max(0, tilesCache.length - 1));
+        focusCol = prevCol;
+  
+        vIndex = clamp(prevVIndex, 0, vMax);
+        applyVTransform();
+        updateVArrows();
+  
+        vSlideToMakeVisible(focusRow);
+        focusCurrent();
+      }, 0);
+    }
+  
+    // ✅ add/remove favoritos usando preservación
+    function addFav(ch){
+      const favs = loadFavs();
+      const id = favIdFromItem(ch);
+      if(favs.some(x => x.id === id)) return;
+  
+      favs.unshift({ id, title: getTitle(ch, 0), url: getUrl(ch), img: getImage(ch) || "", raw: ch });
+      saveFavs(favs);
+      renderFavs();
+  
+      renderSliderPreserveFocus(lastRenderedData.length ? lastRenderedData : channelsData);
+    }
+  
+    function removeFavById(id){
+      saveFavs(loadFavs().filter(x => x.id !== id));
+      renderFavs();
+  
+      renderSliderPreserveFocus(lastRenderedData.length ? lastRenderedData : channelsData);
+    }
+  
+    function clearFavs(){
+      saveFavs([]);
+      renderFavs();
+      // aquí sí puedes volver arriba (o preservar si quieres)
+      renderSlider(lastRenderedData.length ? lastRenderedData : channelsData);
+    }
+  
+    // Controls
+    carUp.onclick = () => vSlideBy(-1);
+    carDown.onclick = () => vSlideBy(1);
+  
+    // ===== App events =====
+    fileInput.addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        try{ channelsData = JSON.parse(event.target.result) || []; }
+        catch{
+          channelsData = [];
+          infoBox.textContent = "❌ JSON inválido. Verifica el formato.";
+          setPreview(null);
+          renderSlider([]);
+          return;
+        }
+        updateChannelList();
+        currentChannel = channelsData[0] || null;
+        setPreview(currentChannel, 0);
+        renderSlider(channelsData);
+        updateFavCount();
+        setTimeout(() => focusCurrent(), 80);
+      };
+      if (file) reader.readAsText(file);
+    });
+  
+    channelSelect.addEventListener('change', function () {
+      const index = Number(this.value);
+      currentChannel = channelsData[index] || null;
+      setPreview(currentChannel, index);
+      focusRow = clamp(index, 0, Math.max(0, tilesCache.length - 1));
+      focusCol = 0;
+    });
+  
+    document.getElementById('play-button').addEventListener('click', function () {
+      if (currentChannel) {
+        const url = getUrl(currentChannel);
+        if(url) playChannel(url);
+      }
+    });
+  
+    document.getElementById('info-button').addEventListener('click', function () {
+      if (currentChannel) {
+        const url = getUrl(currentChannel);
+        if(url) showChannelInfo(url);
+      }
+    });
+  
+    searchInput.addEventListener('input', function () {
+      const search = this.value.toLowerCase();
+      const filtered = channelsData.filter((ch, idx) =>
+        getTitle(ch, idx).toLowerCase().includes(search)
+      );
+      updateChannelList(filtered);
+      renderSlider(filtered);
+  
+      if(filtered.length){
+        currentChannel = filtered[0];
+        setPreview(currentChannel, channelsData.indexOf(currentChannel));
+        focusRow = 0; focusCol = 0;
+        setTimeout(() => focusCurrent(), 80);
+      }else{
+        currentChannel = null;
+        setPreview(null);
+      }
+    });
+  
+    favToggle.onclick = () => {
+      favDrawer.classList.toggle('open');
+      renderFavs();
+    };
+    clearFavsBtn.onclick = () => clearFavs();
+  
+    // ===== TV Mode / Dock toggles =====
+    toggleTvBtn.onclick = () => {
+      document.body.classList.toggle("tv-overscan");
+      const ui = loadUI();
+      ui.tvMode = document.body.classList.contains("tv-overscan");
+      saveUI(ui);
+      applyUIFromStorage();
+      setTimeout(() => { recomputeV(); }, 60);
+    };
+  
+    togglePlayerBtn.onclick = () => {
+      document.body.classList.toggle("player-collapsed");
+      const ui = loadUI();
+      ui.playerCollapsed = document.body.classList.contains("player-collapsed");
+      saveUI(ui);
+      applyUIFromStorage();
+      setTimeout(() => { recomputeV(); }, 60);
+    };
+  
+    focusSliderBtn.onclick = () => {
+      focusRow = clamp(focusRow, 0, Math.max(0, tilesCache.length - 1));
+      focusCol = 0;
+      focusCurrent();
+    };
+  
+    // ===== Remote / Keyboard PRO =====
+    document.addEventListener('keydown', (e) => {
+      const { typing } = getActiveContextTag();
+      if(typing) return;
+  
+      refreshTilesCache();
+      if(!tilesCache.length) return;
+  
+      const key = e.key;
+  
+      if(key === 'ArrowUp'){
+        e.preventDefault();
+        focusRow = clamp(focusRow - 1, 0, tilesCache.length - 1);
+        focusCurrent();
+        return;
+      }
+      if(key === 'ArrowDown'){
+        e.preventDefault();
+        focusRow = clamp(focusRow + 1, 0, tilesCache.length - 1);
+        focusCurrent();
+        return;
+      }
+      if(key === 'ArrowLeft'){
+        e.preventDefault();
+        focusCol = 0;
+        focusCurrent();
+        return;
+      }
+      if(key === 'ArrowRight'){
+        e.preventDefault();
+        focusCol = 1;
+        focusCurrent();
+        return;
+      }
+      if(key === 'Enter'){
+        const el = document.activeElement;
+        if(el && typeof el.click === 'function'){
+          e.preventDefault();
+          el.click();
+        }
+        return;
+      }
+  
+      // Atajos
+      if(key.toLowerCase() === 'f'){
+        favDrawer.classList.toggle('open');
+        renderFavs();
+        return;
+      }
+      if(key.toLowerCase() === 't'){
+        toggleTvBtn.click();
+        return;
+      }
+      if(key.toLowerCase() === 'd'){
+        togglePlayerBtn.click();
+        return;
+      }
+    });
+  
+    window.addEventListener('resize', () => recomputeV());
+  
+    // init
+    applyUIFromStorage();
+    updateFavCount();
+    renderFavs();
+    renderSlider([]);
+  </script>
+ </body>
+ </html>
